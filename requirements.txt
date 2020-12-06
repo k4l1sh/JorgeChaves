@@ -1,0 +1,5 @@
+discord
+tweepy
+datetime
+bs4
+requests
