@@ -131,7 +131,7 @@ async def p(ctx, arg):
 	if(data.COMANDO.isin([arg]).any()):
 		path = data.MP3[data.loc[data.isin([arg]).any(axis=1)].index.tolist()[0]]
 		voice_client = await ctx.author.voice.channel.connect()
-		voice_client.play(discord.FFmpegPCMAudio(path), after=lambda x: endSong(ctx.message.guild.id, path))
+		voice_client.play(discord.FFmpegPCMAudio(path))
 		voice_client.source = discord.PCMVolumeTransformer(voice_client.source, 1)
 		while voice_client.is_playing():
 			await asyncio.sleep(1)
