@@ -9,3 +9,4 @@ ffmpeg
 colorlog
 PyNaCl
 pip
+asyncio

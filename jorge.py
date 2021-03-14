@@ -3,6 +3,7 @@ import os
 import tweepy
 import re
 import requests
+import asyncio
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
