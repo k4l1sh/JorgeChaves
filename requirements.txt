@@ -3,3 +3,10 @@ tweepy
 datetime
 bs4
 requests
+pandas
+discord.py[voice] ~= 1.4.0
+ffmpeg
+colorlog
+PyNaCl
+pip
+ctypes

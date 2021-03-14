@@ -6,6 +6,9 @@ import requests
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+import pandas as pd
+import ctypes
+import ctypes.util
 
 discord_token = os.environ['disctoken']
 consumer_key = os.environ['twikey']
@@ -34,7 +37,8 @@ authT = tweepy.OAuthHandler(consumer_key, consumer_secret)
 authT.set_access_token(access_token, access_token_secret)
 apiT = tweepy.API(authT)
 
-client = discord.Client()
+#client = discord.Client()
+client = commands.Bot(command_prefix="!")
 
 def filtro_urls(string):
     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
@@ -73,7 +77,7 @@ async def limpar_mensagens(canais):
 async def tweeter_loop_get(feed):
 	for canal, usuario in feed:
 		feed = apiT.user_timeline(usuario, count=1, include_rts=False, exclude_replies=True, tweet_mode="extended")
-		if len(feed) is not 0:
+		if len(feed) != 0:
         	    texto = feed[0].full_text
         	    for url in filtro_urls(texto):
         	           texto = texto.replace(url, "<"+url+">")
@@ -97,7 +101,7 @@ async def slow_news_get():
 	newsLoL = BeautifulSoup(requests.get('https://br.leagueoflegends.com/pt-br/news/', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('li', {'class': 'style__ArticleItem-sc-8pxueq-5 bZBZqa'})
 	natureNews = BeautifulSoup(requests.get('https://www.nature.com/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').find('section', {'class': 'section__top-new cleared'}).findAll('a', {'data-track': 'click'})
 	gamesMetacritic = BeautifulSoup(requests.get('https://www.metacritic.com/browse/games/release-date/new-releases/pc/metascore?view=condensed', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('tr', {'class': 'expand_collapse'})
-	newsEsports = BeautifulSoup(requests.get('https://www.esports.com/en/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'container'})[3].findAll('a')
+#	newsEsports = BeautifulSoup(requests.get('https://www.esports.com/en/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'container'})[3].findAll('a')
 	for game in gamesSkid:
 		await enviar_mensagens_unicas('skidrow-reloaded', game.find('a').text+": <"+game.find('a')['href']+">")
 	for game in gamesSteam:
@@ -112,8 +116,27 @@ async def slow_news_get():
 	   await enviar_mensagens_unicas('league-of-legends', "**"+news.find('h2').text+"** <"+hrefLoL+">\n"+news.find('p').text)
 	for news in natureNews:
 	   await enviar_mensagens_unicas('nature', news.find('h3').text.strip()+" <"+news['href']+">", True)
-	for news in newsEsports:
-	   await enviar_mensagens_unicas('esports', "("+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[1].text+") **"+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[2].text.strip()+"** <"+news['href']+">", True)
+#	for news in newsEsports:
+#	   await enviar_mensagens_unicas('esports', "("+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[1].text+") **"+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[2].text.strip()+"** <"+news['href']+">", True)
 
+@client.command()
+async def falajorge(ctx, arg):
+	await ctx.send(arg)
+
+def endSong(guild, path):
+    os.remove(path)
+
+@client.command()
+async def p(ctx, arg):
+	data = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTH_cLTC9WWqvZaU_6MNuT1ReQvTp6nszF3rhzzpWzC78xm940Ykjo1_jcjByVbk47r2tR-FWpEUfRN/pub?gid=0&single=true&output=csv')
+	if(data.COMANDO.isin([arg]).any()):
+		path = data.MP3[data.loc[data.isin([arg]).any(axis=1)].index.tolist()[0]]
+		voice_client = await ctx.author.voice.channel.connect()
+		voice_client.play(discord.FFmpegPCMAudio(path), after=lambda x: endSong(ctx.message.guild.id, path))
+		voice_client.source = discord.PCMVolumeTransformer(voice_client.source, 1)
+		while voice_client.is_playing():
+			await asyncio.sleep(1)
+		else:
+			await voice_client.disconnect()
 
 client.run(discord_token)
