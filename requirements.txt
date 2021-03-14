@@ -9,4 +9,3 @@ ffmpeg
 colorlog
 PyNaCl
 pip
-ctypes
