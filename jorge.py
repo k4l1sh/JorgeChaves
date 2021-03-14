@@ -37,7 +37,6 @@ authT = tweepy.OAuthHandler(consumer_key, consumer_secret)
 authT.set_access_token(access_token, access_token_secret)
 apiT = tweepy.API(authT)
 
-#client = discord.Client()
 client = commands.Bot(command_prefix="!")
 
 def filtro_urls(string):
