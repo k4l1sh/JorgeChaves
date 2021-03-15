@@ -19,7 +19,8 @@ access_token_secret = os.environ['twitokensecret']
 
 limpeza = (
 	('chat-10min', 600),
-	('chat-24h', 86400)
+	('chat-24h', 86400),
+	('bot-commands', 1800)
 	)
 feed_twitter = (
 	('genshin-impact', 'GenshinImpact'),
@@ -59,7 +60,7 @@ async def enviar_mensagens_unicas(canal, texto, sourl=False):
 @client.event
 async def on_ready():
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='news'))
-	print('Bot is ready')
+	print('Bot funcionando')
 	limpar_mensagens.start(limpeza)
 	tweeter_loop_get.start(feed_twitter)
 	slow_news_get.start()
@@ -101,7 +102,6 @@ async def slow_news_get():
 	newsLoL = BeautifulSoup(requests.get('https://br.leagueoflegends.com/pt-br/news/', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('li', {'class': 'style__ArticleItem-sc-8pxueq-5 bZBZqa'})
 	natureNews = BeautifulSoup(requests.get('https://www.nature.com/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').find('section', {'class': 'section__top-new cleared'}).findAll('a', {'data-track': 'click'})
 	gamesMetacritic = BeautifulSoup(requests.get('https://www.metacritic.com/browse/games/release-date/new-releases/pc/metascore?view=condensed', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('tr', {'class': 'expand_collapse'})
-#	newsEsports = BeautifulSoup(requests.get('https://www.esports.com/en/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'container'})[3].findAll('a')
 	for game in gamesSkid:
 		await enviar_mensagens_unicas('skidrow-reloaded', game.find('a').text+": <"+game.find('a')['href']+">")
 	for game in gamesSteam:
@@ -116,17 +116,12 @@ async def slow_news_get():
 	   await enviar_mensagens_unicas('league-of-legends', "**"+news.find('h2').text+"** <"+hrefLoL+">\n"+news.find('p').text)
 	for news in natureNews:
 	   await enviar_mensagens_unicas('nature', news.find('h3').text.strip()+" <"+news['href']+">", True)
-#	for news in newsEsports:
-#	   await enviar_mensagens_unicas('esports', "("+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[1].text+") **"+news.find('div', {'class': 'relative w-full content-tile text-charcoal'}).findAll('div')[2].text.strip()+"** <"+news['href']+">", True)
 
 @client.command()
 async def falajorge(ctx, arg):
 	await ctx.send(arg)
 
-def endSong(guild, path):
-    os.remove(path)
-
-@client.command()
+@client.command(pass_context=True)
 async def p(ctx, arg):
 	data = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTH_cLTC9WWqvZaU_6MNuT1ReQvTp6nszF3rhzzpWzC78xm940Ykjo1_jcjByVbk47r2tR-FWpEUfRN/pub?gid=0&single=true&output=csv')
 	if(data.COMANDO.isin([arg]).any()):
@@ -134,9 +129,14 @@ async def p(ctx, arg):
 		voice_client = await ctx.author.voice.channel.connect()
 		voice_client.play(discord.FFmpegPCMAudio(path))
 		voice_client.source = discord.PCMVolumeTransformer(voice_client.source, 1)
+		s = 0
 		while voice_client.is_playing():
 			await asyncio.sleep(1)
+			s += 1
+			if s == 20:
+				await voice_client.disconnect()
 		else:
 			await voice_client.disconnect()
+	await client.delete_message(ctx.message)
 
 client.run(discord_token)

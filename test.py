@@ -1,7 +1,17 @@
-import pandas as pd
+import asyncio
 
-data = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTH_cLTC9WWqvZaU_6MNuT1ReQvTp6nszF3rhzzpWzC78xm940Ykjo1_jcjByVbk47r2tR-FWpEUfRN/pub?gid=0&single=true&output=csv')
-palavra = 'maomé'
-if(data.COMANDO.isin([palavra]).any()):
-    link = data.MP3[data.loc[data.isin([palavra]).any(axis=1)].index.tolist()[0]]
-    print(link)
+async def count():
+    for x in range(4):
+        print(x)
+        await asyncio.sleep(1)
+        print(x)
+
+async def main():
+    await asyncio.gather(count())
+
+if __name__ == "__main__":
+    import time
+    s = time.perf_counter()
+    asyncio.run(main())
+    elapsed = time.perf_counter() - s
+    print(f"{__file__} executed in {elapsed:0.2f} seconds.")
