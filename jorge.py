@@ -110,7 +110,7 @@ async def tweeter_loop_get(feed):
 						texto = texto.replace(url, "<"+url+">")
 					await enviar_mensagens_unicas(canal, texto)
 
-#polling de 11 minutos para scraping de dados transientes
+# polling de 11 minutos para scraping de dados transientes
 @tasks.loop(seconds=660)
 async def fast_news_get():
 	if(discord.utils.get(client.get_all_channels(), name=canal_world_news) is not None):
@@ -124,7 +124,7 @@ async def fast_news_get():
 			if 'abtest' not in news.find('h2').text:
 				await enviar_mensagens_unicas(canal_ars_technica, "**"+news.find('h2').text+"** <"+news.find('a')['href']+">\n"+news.find('p').text, True)
 
-#polling de ~117 minutos para scraping de dados duradouros
+# polling de ~117 minutos para scraping de dados duradouros
 @tasks.loop(seconds=7000)
 async def slow_news_get():
 	if(discord.utils.get(client.get_all_channels(), name=canal_steam_deals) is not None):
@@ -164,9 +164,9 @@ async def falajorge(ctx, arg):
 # ativa o comando !p para ouvir instant sounds utilizando uma planilha do google sheets como CMS
 @client.command(pass_context=True)
 async def p(ctx, arg):
-	await ctx.message.add_reaction("✔️")
 	data = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTH_cLTC9WWqvZaU_6MNuT1ReQvTp6nszF3rhzzpWzC78xm940Ykjo1_jcjByVbk47r2tR-FWpEUfRN/pub?gid=0&single=true&output=csv')
 	if(data.COMANDO.isin([arg]).any()):
+		await ctx.message.add_reaction("✔️")
 		path = data.MP3[data.loc[data.isin([arg]).any(axis=1)].index.tolist()[0]]
 		voice_client = await ctx.author.voice.channel.connect()
 		voice_client.play(discord.FFmpegPCMAudio(path))
