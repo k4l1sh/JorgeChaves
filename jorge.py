@@ -50,7 +50,7 @@ canal_nature = 'nature'
 canal_ars_technica = 'ars-technica'
 
 # limite de tempo para o bot permanecer tocando um instant sound
-music_maximum_time = 20
+music_maximum_time = 10
 
 
 
@@ -172,12 +172,9 @@ async def p(ctx, arg):
 		voice_client.play(discord.FFmpegPCMAudio(path))
 		voice_client.source = discord.PCMVolumeTransformer(voice_client.source, 1)
 		s = 0
-		while voice_client.is_playing():
+		while not s >= music_maximum_time:
 			await asyncio.sleep(1)
 			s += 1
-			if s == music_maximum_time:
-				await voice_client.disconnect()
-				await ctx.message.delete()
 		else:
 			await voice_client.disconnect()
 			await ctx.message.delete()
