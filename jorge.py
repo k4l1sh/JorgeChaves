@@ -175,8 +175,7 @@ async def p(ctx, arg):
 		while not s >= music_maximum_time:
 			await asyncio.sleep(1)
 			s += 1
-		else:
-			await voice_client.disconnect()
-			await ctx.message.delete()
+		await voice_client.disconnect()
+		await ctx.message.delete()
 
 client.run(discord_token)
