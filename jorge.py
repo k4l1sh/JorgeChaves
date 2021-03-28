@@ -28,7 +28,7 @@ limpeza = (
 	('chat-10min', 600),
 	('chat-24h', 86400),
 	('bot-commands', 1800),
-	(canal_conversa_bot, 60)
+	(canal_conversa_bot, 600)
 	)
 
 # (canal do discord, perfil do twitter) para capturar os ultimos tweets
