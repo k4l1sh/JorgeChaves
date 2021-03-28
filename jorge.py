@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import ctypes
 import ctypes.util
+import kuki
 
 # chaves de API do discord e do twitter (para guardar nas config vars do heroku ou outro servidor de hospedagem)
 discord_token = os.environ['disctoken']
@@ -18,11 +19,16 @@ consumer_secret = os.environ['twisecret']
 access_token = os.environ['twitoken']
 access_token_secret = os.environ['twitokensecret']
 
+
+# canal para conversar com o bot
+canal_conversa_bot = 'converse-comigo'
+
 # (canal do discord, tempo em segundos) para executar uma limpeza rotineira de mensagens
 limpeza = (
 	('chat-10min', 600),
 	('chat-24h', 86400),
-	('bot-commands', 1800)
+	('bot-commands', 1800),
+	(canal_conversa_bot, 60)
 	)
 
 # (canal do discord, perfil do twitter) para capturar os ultimos tweets
@@ -51,7 +57,6 @@ canal_ars_technica = 'ars-technica'
 
 # limite de tempo para o bot permanecer tocando um instant sound
 music_maximum_time = 10
-
 
 
 authT = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -95,7 +100,7 @@ async def limpar_mensagens(canais):
 		if(discord.utils.get(client.get_all_channels(), name=canal) is not None):
 			Channel = client.get_channel(discord.utils.get(client.get_all_channels(), name=canal).id)
 			for mensagem in await Channel.history(limit=1000).flatten():
-				if not mensagem.author.bot and datetime.utcnow()-mensagem.created_at > timedelta(seconds=tempo):
+				if (not mensagem.author.bot or canal==canal_conversa_bot) and datetime.utcnow()-mensagem.created_at > timedelta(seconds=tempo):
 					await mensagem.delete()
 
 # polling de 7 minutos para scraping do twitter
@@ -150,10 +155,14 @@ async def slow_news_get():
 
 # adiciona um emoji a cada mensagem no canal de memes
 @client.event
-async def on_message(message):
-	if 'memes' == str(message.channel):
-		await message.add_reaction("😂")
-	await client.process_commands(message)
+async def on_message(mensagem):
+	if 'memes' == str(mensagem.channel):
+		await mensagem.add_reaction("😂")
+	elif canal_conversa_bot == str(mensagem.channel) and not mensagem.author.bot:
+		for resposta in kuki.kuki_request(mensagem.content):
+			await mensagem.channel.send(resposta)
+	await client.process_commands(mensagem)
+
 
 # envia a mensagem como bot, para evitar limpeza
 @client.command(pass_context=True)
