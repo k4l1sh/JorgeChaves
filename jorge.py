@@ -100,7 +100,7 @@ async def limpar_mensagens(canais):
 		if(discord.utils.get(client.get_all_channels(), name=canal) is not None):
 			Channel = client.get_channel(discord.utils.get(client.get_all_channels(), name=canal).id)
 			for mensagem in await Channel.history(limit=1000).flatten():
-				if (not mensagem.author.bot or canal==canal_conversa_bot) and datetime.utcnow()-mensagem.created_at > timedelta(seconds=tempo):
+				if (not mensagem.author.bot or canal==canal_conversa_bot) and (datetime.utcnow()-mensagem.created_at > timedelta(seconds=tempo)):
 					await mensagem.delete()
 
 # polling de 7 minutos para scraping do twitter
