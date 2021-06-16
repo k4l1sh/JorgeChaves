@@ -173,7 +173,7 @@ async def slow_news_get():
 	if(discord.utils.get(client.get_all_channels(), name=canal_new_world) is not None):
 		newWorldNews = BeautifulSoup(requests.get('https://www.newworld.com/en-us/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'ags-SlotModule--blog'})
 		for newWorld in newWorldNews:
-			await enviar_mensagens_unicas(canal_new_world, "**"+newWorld.select('a>div>span')[1].text.strip()+"** <https://www.newworld.com"+newWorld.find('a')['href']+"> "+newWorld.select('a>div>div')[0].text.strip())
+			await enviar_mensagens_unicas(canal_new_world, "**"+newWorld.select('a>div>span')[1].text.strip()+"** <https://www.newworld.com"+newWorld.find('a')['href']+">\n"+newWorld.select('a>div>div')[0].text.strip())
 
 
 # adiciona um emoji a cada mensagem no canal de memes
