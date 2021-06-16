@@ -19,7 +19,6 @@ consumer_secret = os.environ['twisecret']
 access_token = os.environ['twitoken']
 access_token_secret = os.environ['twitokensecret']
 
-
 # canal para conversar com o bot
 canal_conversa_bot = 'converse-comigo'
 
@@ -35,7 +34,7 @@ limpeza = (
 feed_twitter = (
 	('genshin-impact', 'GenshinImpact'),
 	('genshin-impact', 'Zeniiet'),
-	('ashes-of-creation', 'AshesofCreation'),
+	('swords-of-legends', 'PlaySoLOnline'),
 	('cnn-international', 'cnni'),
 	('nytimes-world', 'nytimesworld'),
 	('bbc-world', 'BBCWorld'),
@@ -54,22 +53,28 @@ canal_metacritic_trends = 'metacritic-trends'
 canal_noticias_lol = 'league-of-legends'
 canal_nature = 'nature'
 canal_ars_technica = 'ars-technica'
+canal_hacker_news = 'hacker-news'
+canal_ashes = 'ashes-of-creation'
+canal_new_world = 'new-world'
 
 # limite de tempo para o bot permanecer tocando um instant sound
 music_maximum_time = 10
 
-
+# auth do tweepy
 authT = tweepy.OAuthHandler(consumer_key, consumer_secret)
 authT.set_access_token(access_token, access_token_secret)
 apiT = tweepy.API(authT)
 
+# prefixo dos comandos do bot
 client = commands.Bot(command_prefix="!")
+
 
 # filtro de urls para evitar o envio de embeds
 def filtro_urls(string):
     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
     url = re.findall(regex,string)
     return [x[0] for x in url]
+
 
 # evitar mensagens de dados repetidos
 async def enviar_mensagens_unicas(canal, texto, sourl=False):
@@ -83,6 +88,7 @@ async def enviar_mensagens_unicas(canal, texto, sourl=False):
 	if marcador == 0:
 		await CanalH.send(texto)
 
+
 # ativar a limpeza, o scraping de dados e o status do bot
 @client.event
 async def on_ready():
@@ -93,6 +99,7 @@ async def on_ready():
 	slow_news_get.start()
 	fast_news_get.start()
 
+
 # polling de 1 minuto para limpeza
 @tasks.loop(seconds=60)
 async def limpar_mensagens(canais):
@@ -102,6 +109,7 @@ async def limpar_mensagens(canais):
 			for mensagem in await Channel.history(limit=1000).flatten():
 				if (not mensagem.author.bot or canal==canal_conversa_bot) and (datetime.utcnow()-mensagem.created_at > timedelta(seconds=tempo)):
 					await mensagem.delete()
+
 
 # polling de 7 minutos para scraping do twitter
 @tasks.loop(seconds=420)
@@ -114,6 +122,7 @@ async def tweeter_loop_get(feed):
 					for url in filtro_urls(texto):
 						texto = texto.replace(url, "<"+url+">")
 					await enviar_mensagens_unicas(canal, texto)
+
 
 # polling de 11 minutos para scraping de dados transientes
 @tasks.loop(seconds=660)
@@ -128,6 +137,11 @@ async def fast_news_get():
 		for news in arsTechnica:
 			if 'abtest' not in news.find('h2').text:
 				await enviar_mensagens_unicas(canal_ars_technica, "**"+news.find('h2').text+"** <"+news.find('a')['href']+">\n"+news.find('p').text, True)
+	if(discord.utils.get(client.get_all_channels(), name=canal_hacker_news) is not None):
+		hackerNews = BeautifulSoup(requests.get('https://news.ycombinator.com/front', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('tr', {'class': 'athing'})
+		for hackerNew in hackerNews:
+			await enviar_mensagens_unicas(canal_hacker_news, hackerNew.findAll('td', {'class': 'title'})[1].find('a').text+" <"+hackerNew.findAll('td', {'class': 'title'})[1].find('a')['href']+">")
+
 
 # polling de ~117 minutos para scraping de dados duradouros
 @tasks.loop(seconds=7000)
@@ -141,8 +155,8 @@ async def slow_news_get():
 		gamesMetacritic = BeautifulSoup(requests.get('https://www.metacritic.com/browse/games/release-date/new-releases/pc/metascore?view=condensed', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('tr', {'class': 'expand_collapse'})
 		for game in gamesMetacritic:
 			await enviar_mensagens_unicas(canal_metacritic_trends, "("+game.find('td', {'class': 'score'}).div.text+") **"+game.find('td', {'class': 'details'}).h3.text+"**. "+game.find('td', {'class': 'details'}).findAll('span')[3].text+" <https://www.metacritic.com"+game.find('td', {'class': 'details'}).find('a')['href']+">", True)
-		newsLoL = BeautifulSoup(requests.get('https://br.leagueoflegends.com/pt-br/news/', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('li', {'class': 'style__ArticleItem-sc-8pxueq-5 bZBZqa'})
 	if(discord.utils.get(client.get_all_channels(), name=canal_noticias_lol) is not None):
+		newsLoL = BeautifulSoup(requests.get('https://br.leagueoflegends.com/pt-br/news/', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('li', {'class': 'style__ArticleItem-sc-8pxueq-5 bZBZqa'})
 		for news in newsLoL:
 			hrefLoL = news.next['href']
 			if 'http' not in hrefLoL:
@@ -152,6 +166,15 @@ async def slow_news_get():
 		natureNews = BeautifulSoup(requests.get('https://www.nature.com/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').find('section', {'class': 'section__top-new cleared'}).findAll('a', {'data-track': 'click'})
 		for news in natureNews:
 			await enviar_mensagens_unicas(canal_nature, news.find('h3').text.strip()+" <"+news['href']+">", True)
+	if(discord.utils.get(client.get_all_channels(), name=canal_ashes) is not None):
+		ashesNews = BeautifulSoup(requests.get('https://ashesofcreation.com/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'news-tile'})
+		for ashesNew in ashesNews:
+			await enviar_mensagens_unicas(canal_ashes, ashesNew.find('div', {'class': 'news-tile-body'}).h3.a.text+" <https://ashesofcreation.com"+ashesNew.find('div', {'class': 'news-tile-body'}).h3.a['href']+">")
+	if(discord.utils.get(client.get_all_channels(), name=canal_new_world) is not None):
+		newWorldNews = BeautifulSoup(requests.get('https://www.newworld.com/en-us/news', headers={'User-Agent': 'Mozilla/5.0'}).text, 'html.parser').findAll('div', {'class': 'ags-SlotModule--blog'})
+		for newWorld in newWorldNews:
+			await enviar_mensagens_unicas(canal_new_world, "**"+newWorld.select('a>div>span')[1].text.strip()+"** <https://www.newworld.com"+newWorld.find('a')['href']+"> "+newWorld.select('a>div>div')[0].text.strip())
+
 
 # adiciona um emoji a cada mensagem no canal de memes
 @client.event
@@ -170,6 +193,7 @@ async def falajorge(ctx, arg):
 	await ctx.send(arg)
 	await ctx.message.delete()
 
+
 # ativa o comando !p para ouvir instant sounds utilizando uma planilha do google sheets como CMS
 @client.command(pass_context=True)
 async def p(ctx, arg):
@@ -186,5 +210,6 @@ async def p(ctx, arg):
 			s += 1
 		await voice_client.disconnect()
 		await ctx.message.delete()
+
 
 client.run(discord_token)
