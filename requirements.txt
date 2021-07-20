@@ -10,4 +10,4 @@ colorlog
 PyNaCl
 pip
 asyncio
-google_trans_new
+googletrans==4.0.0-rc1

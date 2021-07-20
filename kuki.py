@@ -1,16 +1,15 @@
 import requests
-from google_trans_new import google_translator
+from googletrans import Translator
 import re
 
 def filtro_resposta(resposta):
     resposta = re.sub("kuki", "Jorge Chaves", resposta, flags=re.IGNORECASE)
     resposta = re.sub(re.compile("<.*?>"), "\n", resposta)
-    resposta = google_translator().translate(resposta,lang_tgt='pt')
     return resposta
 
 def kuki_request(texto):
     dados = {
-        "input": google_translator().translate(texto,lang_tgt='en'),
+        "input": Translator(service_urls=['translate.google.com.br']).translate(texto, dest='en').text,
         "botkey": "icH-VVd4uNBhjUid30-xM9QhnvAaVS3wVKA3L8w2mmspQ-hoUB3ZK153sEG3MX-Z8bKchASVLAo~",
         "channel": 7,
         "sessionid": 471594971,

@@ -26,7 +26,7 @@ canal_conversa_bot = 'converse-comigo'
 limpeza = (
 	('chat-10min', 600),
 	('chat-24h', 86400),
-	('bot-commands', 1800),
+	('admins', 1800),
 	(canal_conversa_bot, 600)
 	)
 
