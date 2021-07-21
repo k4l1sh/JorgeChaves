@@ -5,11 +5,12 @@ import re
 def filtro_resposta(resposta):
     resposta = re.sub("kuki", "Jorge Chaves", resposta, flags=re.IGNORECASE)
     resposta = re.sub(re.compile("<.*?>"), "\n", resposta)
+    resposta = Translator().translate(resposta, dest='pt').text
     return resposta
 
 def kuki_request(texto):
     dados = {
-        "input": Translator(service_urls=['translate.google.com.br']).translate(texto, dest='en').text,
+        "input": Translator().translate(texto, dest='en').text,
         "botkey": "icH-VVd4uNBhjUid30-xM9QhnvAaVS3wVKA3L8w2mmspQ-hoUB3ZK153sEG3MX-Z8bKchASVLAo~",
         "channel": 7,
         "sessionid": 471594971,
