@@ -5,7 +5,6 @@ import re
 def filtro_resposta(resposta):
     resposta = re.sub("kuki", "Jorge Chaves", resposta, flags=re.IGNORECASE)
     resposta = re.sub(re.compile("<.*?>"), "\n", resposta)
-    resposta = Translator().translate(resposta, dest='pt').text
     return resposta
 
 def kuki_request(texto):
